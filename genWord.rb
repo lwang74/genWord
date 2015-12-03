@@ -1,6 +1,8 @@
 #coding UTF-8
 Encoding.default_internal = 'UTF-8'
 
+# 教育学会个人会员注册_20151203
+
 require 'fileutils'
 require './excel'
 
