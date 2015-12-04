@@ -62,7 +62,7 @@ def main
 	# all_info.each{|row|
 	# 	puts row[1]
 	# }
-	
+
 	cnt = 1
 	all_info.each{|one|
 		print '.'
@@ -80,7 +80,7 @@ def main
 		# break if cnt>=20
 		cnt+=1
 	}
-	rescue Exception => e
+	rescue Errno::EEXIST => e
 		puts "路径'#{out}' 被占用，请手动删除后重试！"
 	end
 end
