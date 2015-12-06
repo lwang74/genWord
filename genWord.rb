@@ -19,11 +19,13 @@ class Word
 	end
 
 	def add_picture_in_table pic_path, table, row, column
-		full_pic_path = "#{@curr_path}\\#{pic_path}"
-		@pic = true
+		full_pic_path = "#{@curr_path}\\#{pic_path}\\*.jpg"
+		pics = Dir[full_pic_path.gsub(/\\/, '/').encode(Encoding.default_external)]
 
-		if File.exists?(full_pic_path)
-			shp = @tables.Item(table).cell(row, column).range.inlineShapes.AddPicture(full_pic_path)
+		@pic = true
+		if pics.size==1
+			# puts pics[0]
+			shp = @tables.Item(table).cell(row, column).range.inlineShapes.AddPicture(pics[0])
 			shp.height = @word_app.CentimetersToPoints(4) 
 		else
 			@pic = false
@@ -33,7 +35,7 @@ class Word
 
 	def save_as target_file
 		no_pic = @pic? '' : ' (无照片)'
-		@doc.SaveAs2 "#{@curr_path}\\#{target_file} #{no_pic}.doc"
+		@doc.SaveAs "#{@curr_path}\\#{target_file} #{no_pic}.doc"
 		@word_app.quit
 	end
 end
@@ -41,8 +43,8 @@ end
 def main
 	begin
 	out = "output"
-	FileUtils.rm_rf out
-	FileUtils.mkdir out
+	# FileUtils.rm_rf out
+	FileUtils.mkdir out if !File.exist?(out)
 
 	excel = '河东区八十二中会员花名册.xls'
 	sht = '花名册'
@@ -56,12 +58,24 @@ def main
 	}
 
 	all_info = all_list.map{|row|
-		[row[0], row[1], row[2], row[3], row[4], row[5]] if /^HY\-\d{3}\-z\d{3}\-\d{3}$/=~ row[0]
+		# p row[9]
+		[row[0], row[1], row[2], row[3], row[4], row[5]] if /^HY\-\d{3}\-z\d{3}\-\d{3}$/=~ row[0] and (row[9]!=nil and row[9].to_s=~/\S+/)
 	}.compact
 
 	# all_info.each{|row|
 	# 	puts row[1]
 	# }
+
+	# delete exists Word file
+	deleting_file = nil
+	all_info.each{|row|
+		# puts "#{out}\\#{row[0]}+*.doc"
+		match_files = Dir["#{out}/#{row[0]}+*.doc"]
+		match_files.each{|one|
+			deleting_file = one
+			FileUtils.rm one
+		}
+	}
 
 	cnt = 1
 	all_info.each{|one|
@@ -74,14 +88,16 @@ def main
 		word.write_in_table "#{one[4]}, #{one[5]}", 1, 5, 2
 		code = one[0].encode('UTF-8')
 		name = one[1].encode('UTF-8')
-		pic = "photos\\#{code}\\河东区八十二中学#{name}.JPG"
+		pic = "photos\\#{code}"
 		word.add_picture_in_table pic, 1, 1, 3	
 		word.save_as "#{out}\\#{one[0]}+#{one[1]}"
 		# break if cnt>=20
 		cnt+=1
 	}
-	rescue Errno::EEXIST => e
+	rescue Errno::EEXIST=> e
 		puts "路径'#{out}' 被占用，请手动删除后重试！"
+	rescue Errno::EACCES=> e
+		puts "Word文件'#{deleting_file}' 被占用，请手动删除后重试！"
 	end
 end
 
