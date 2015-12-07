@@ -4,7 +4,7 @@ Encoding.default_internal = 'UTF-8'
 # 教育学会个人会员注册_20151203
 
 require 'fileutils'
-require './excel'
+require_relative 'excel'
 
 class Word
 	def initialize doc_file
@@ -97,7 +97,7 @@ def main
 	rescue Errno::EEXIST=> e
 		puts "路径'#{out}' 被占用，请手动删除后重试！"
 	rescue Errno::EACCES=> e
-		puts "Word文件'#{deleting_file}' 被占用，请手动删除后重试！"
+		puts "Word文件'#{deleting_file}' 被占用，请关闭相应Word文件后重试！"
 	end
 end
 
